@@ -1,291 +1,241 @@
--- MT SCRIPT - Versão Mobile
--- Script para Roblox com controles otimizados para celular
-
 local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
 local rootPart = character:WaitForChild("HumanoidRootPart")
 
--- Variáveis de controle
+-- Variáveis
 local speedMultiplier = 1
-local jumpPower = 50
+local jumpMultiplier = 1
 local isMinimized = false
+local bodyVelocity
 
--- Criar ScreenGui
+-- Criar BodyVelocity para controlar velocidade
+local function createBodyVelocity()
+    if bodyVelocity then bodyVelocity:Destroy() end
+    bodyVelocity = Instance.new("BodyVelocity")
+    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    bodyVelocity.MaxForce = Vector3.new(math.huge, 0, math.huge)
+    bodyVelocity.Damping = 0
+    bodyVelocity.Parent = rootPart
+end
+
+createBodyVelocity()
+
+-- Criar GUI
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "MTScriptGui"
+screenGui.Name = "MTScript"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
--- Painel Principal (Preto com bordas vermelhas)
-local mainPanel = Instance.new("Frame")
-mainPanel.Name = "MainPanel"
-mainPanel.Size = UDim2.new(0, 280, 0, 320)
-mainPanel.Position = UDim2.new(0, 10, 0, 50)
-mainPanel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-mainPanel.BorderColor3 = Color3.fromRGB(255, 0, 0)
-mainPanel.BorderSizePixel = 3
-mainPanel.Parent = screenGui
+-- Frame Principal
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 300, 0, 250)
+mainFrame.Position = UDim2.new(0, 10, 0, 10)
+mainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+mainFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
+mainFrame.BorderSizePixel = 3
+mainFrame.Parent = screenGui
 
 -- Título
-local titleLabel = Instance.new("TextLabel")
-titleLabel.Name = "Title"
-titleLabel.Size = UDim2.new(1, 0, 0, 40)
-titleLabel.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-titleLabel.TextSize = 24
-titleLabel.Font = Enum.Font.GothamBold
-titleLabel.Text = "MT SCRIPT"
-titleLabel.Parent = mainPanel
+local title = Instance.new("TextLabel")
+title.Name = "Title"
+title.Size = UDim2.new(1, 0, 0, 40)
+title.Position = UDim2.new(0, 0, 0, 0)
+title.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+title.TextColor3 = Color3.fromRGB(255, 0, 0)
+title.TextSize = 18
+title.Font = Enum.Font.GothamBold
+title.Text = "🔴 MT SCRIPT 🔴"
+title.Parent = mainFrame
 
--- Botão Minimizar (canto superior direito)
+-- Botão Minimizar
 local minimizeBtn = Instance.new("TextButton")
 minimizeBtn.Name = "MinimizeBtn"
-minimizeBtn.Size = UDim2.new(0, 40, 0, 40)
-minimizeBtn.Position = UDim2.new(1, -40, 0, 0)
+minimizeBtn.Size = UDim2.new(0, 30, 0, 30)
+minimizeBtn.Position = UDim2.new(1, -35, 0, 5)
 minimizeBtn.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-minimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-minimizeBtn.TextSize = 20
+minimizeBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+minimizeBtn.TextSize = 16
 minimizeBtn.Font = Enum.Font.GothamBold
 minimizeBtn.Text = "−"
-minimizeBtn.Parent = mainPanel
-
--- Container dos Sliders
-local container = Instance.new("Frame")
-container.Name = "Container"
-container.Size = UDim2.new(1, -10, 1, -50)
-container.Position = UDim2.new(0, 5, 0, 45)
-container.BackgroundTransparency = 1
-container.Parent = mainPanel
+minimizeBtn.Parent = mainFrame
 
 -- Label Velocidade
 local speedLabel = Instance.new("TextLabel")
-speedLabel.Name = "SpeedLabel"
 speedLabel.Size = UDim2.new(1, 0, 0, 25)
-speedLabel.Position = UDim2.new(0, 0, 0, 10)
+speedLabel.Position = UDim2.new(0, 10, 0, 50)
 speedLabel.BackgroundTransparency = 1
-speedLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+speedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 speedLabel.TextSize = 14
 speedLabel.Font = Enum.Font.Gotham
-speedLabel.Text = "🚀 VELOCIDADE: 1.0x"
 speedLabel.TextXAlignment = Enum.TextXAlignment.Left
-speedLabel.Parent = container
+speedLabel.Text = "🚀 Velocidade: 1x"
+speedLabel.Parent = mainFrame
 
 -- Slider Velocidade
 local speedSlider = Instance.new("Frame")
-speedSlider.Name = "SpeedSlider"
-speedSlider.Size = UDim2.new(1, -10, 0, 8)
-speedSlider.Position = UDim2.new(0, 5, 0, 40)
+speedSlider.Size = UDim2.new(0, 250, 0, 15)
+speedSlider.Position = UDim2.new(0, 25, 0, 75)
 speedSlider.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 speedSlider.BorderColor3 = Color3.fromRGB(255, 0, 0)
-speedSlider.BorderSizePixel = 1
-speedSlider.Parent = container
+speedSlider.BorderSizePixel = 2
+speedSlider.Parent = mainFrame
 
-local speedFill = Instance.new("Frame")
-speedFill.Name = "Fill"
-speedFill.Size = UDim2.new(0.2, 0, 1, 0)
-speedFill.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-speedFill.BorderSizePixel = 0
-speedFill.Parent = speedSlider
+local speedButton = Instance.new("TextButton")
+speedButton.Size = UDim2.new(0, 15, 0, 15)
+speedButton.Position = UDim2.new(0, 0, 0, 0)
+speedButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+speedButton.BorderSizePixel = 0
+speedButton.Text = ""
+speedButton.Parent = speedSlider
 
 -- Label Pulo
 local jumpLabel = Instance.new("TextLabel")
-jumpLabel.Name = "JumpLabel"
 jumpLabel.Size = UDim2.new(1, 0, 0, 25)
-jumpLabel.Position = UDim2.new(0, 0, 0, 80)
+jumpLabel.Position = UDim2.new(0, 10, 0, 110)
 jumpLabel.BackgroundTransparency = 1
-jumpLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+jumpLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 jumpLabel.TextSize = 14
 jumpLabel.Font = Enum.Font.Gotham
-jumpLabel.Text = "⬆️ PULO: 50"
 jumpLabel.TextXAlignment = Enum.TextXAlignment.Left
-jumpLabel.Parent = container
+jumpLabel.Text = "⬆️ Pulo: 1x"
+jumpLabel.Parent = mainFrame
 
 -- Slider Pulo
 local jumpSlider = Instance.new("Frame")
-jumpSlider.Name = "JumpSlider"
-jumpSlider.Size = UDim2.new(1, -10, 0, 8)
-jumpSlider.Position = UDim2.new(0, 5, 0, 110)
+jumpSlider.Size = UDim2.new(0, 250, 0, 15)
+jumpSlider.Position = UDim2.new(0, 25, 0, 135)
 jumpSlider.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 jumpSlider.BorderColor3 = Color3.fromRGB(255, 0, 0)
-jumpSlider.BorderSizePixel = 1
-jumpSlider.Parent = container
+jumpSlider.BorderSizePixel = 2
+jumpSlider.Parent = mainFrame
 
-local jumpFill = Instance.new("Frame")
-jumpFill.Name = "Fill"
-jumpFill.Size = UDim2.new(0.25, 0, 1, 0)
-jumpFill.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-jumpFill.BorderSizePixel = 0
-jumpFill.Parent = jumpSlider
+local jumpButton = Instance.new("TextButton")
+jumpButton.Size = UDim2.new(0, 15, 0, 15)
+jumpButton.Position = UDim2.new(0, 0, 0, 0)
+jumpButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+jumpButton.BorderSizePixel = 0
+jumpButton.Text = ""
+jumpButton.Parent = jumpSlider
 
--- Label Status
+-- Status
 local statusLabel = Instance.new("TextLabel")
-statusLabel.Name = "Status"
-statusLabel.Size = UDim2.new(1, 0, 0, 20)
-statusLabel.Position = UDim2.new(0, 0, 0, 160)
+statusLabel.Size = UDim2.new(1, -20, 0, 30)
+statusLabel.Position = UDim2.new(0, 10, 1, -35)
 statusLabel.BackgroundTransparency = 1
-statusLabel.TextColor3 = Color3.fromRGB(100, 100, 100)
+statusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
 statusLabel.TextSize = 12
 statusLabel.Font = Enum.Font.Gotham
-statusLabel.Text = "Status: Ativo"
-statusLabel.TextXAlignment = Enum.TextXAlignment.Left
-statusLabel.Parent = container
+statusLabel.Text = "✓ Ativo"
+statusLabel.Parent = mainFrame
 
--- Info Mobile
-local infoLabel = Instance.new("TextLabel")
-infoLabel.Name = "Info"
-infoLabel.Size = UDim2.new(1, 0, 0, 80)
-infoLabel.Position = UDim2.new(0, 0, 0, 200)
-infoLabel.BackgroundTransparency = 1
-infoLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
-infoLabel.TextSize = 11
-infoLabel.Font = Enum.Font.Gotham
-infoLabel.TextWrapped = true
-infoLabel.Text = "📱 Deslize os controles\n\n🔘 Toque para minimizar\n\n⌨️ Pressione K para toggle"
-infoLabel.TextXAlignment = Enum.TextXAlignment.Center
-infoLabel.TextYAlignment = Enum.TextYAlignment.Top
-infoLabel.Parent = container
-
--- Função para atualizar velocidade
-local function updateSpeed(value)
-	speedMultiplier = math.clamp(value, 1, 6)
-	speedLabel.Text = "🚀 VELOCIDADE: " .. string.format("%.1f", speedMultiplier) .. "x"
-	speedFill.Size = UDim2.new(((speedMultiplier - 1) / 5), 0, 1, 0)
+-- Funções Slider
+local function updateSpeedSlider()
+    local percentage = (speedMultiplier - 1) / 5
+    speedButton.Position = UDim2.new(percentage, -7.5, 0, 0)
+    speedLabel.Text = "🚀 Velocidade: " .. string.format("%.1f", speedMultiplier) .. "x"
 end
 
--- Função para atualizar pulo
-local function updateJump(value)
-	jumpPower = math.clamp(value, 50, 200)
-	jumpLabel.Text = "⬆️ PULO: " .. tostring(math.floor(jumpPower))
-	jumpFill.Size = UDim2.new(((jumpPower - 50) / 150), 0, 1, 0)
+local function updateJumpSlider()
+    local percentage = (jumpMultiplier - 1) / 4
+    jumpButton.Position = UDim2.new(percentage, -7.5, 0, 0)
+    jumpLabel.Text = "⬆️ Pulo: " .. string.format("%.1f", jumpMultiplier) .. "x"
 end
 
--- Função para minimizar/abrir
-local function toggleMinimize()
-	isMinimized = not isMinimized
-	if isMinimized then
-		container.Visible = false
-		minimizeBtn.Text = "+"
-		mainPanel.Size = UDim2.new(0, 280, 0, 40)
-	else
-		container.Visible = true
-		minimizeBtn.Text = "−"
-		mainPanel.Size = UDim2.new(0, 280, 0, 320)
-	end
-end
+-- Eventos dos Sliders
+local draggingSpeed = false
+local draggingJump = false
 
--- Controles de toque para Sliders (Mobile)
-local speedTouching = false
-local jumpTouching = false
-
-speedSlider.InputBegan:Connect(function(input, gameProcessed)
-	if gameProcessed then return end
-	if input.UserInputType == Enum.UserInputType.Touch then
-		speedTouching = true
-	end
+speedButton.MouseButton1Down:Connect(function()
+    draggingSpeed = true
 end)
 
-speedSlider.InputEnded:Connect(function(input, gameProcessed)
-	if input.UserInputType == Enum.UserInputType.Touch then
-		speedTouching = false
-	end
+jumpButton.MouseButton1Down:Connect(function()
+    draggingJump = true
 end)
 
-jumpSlider.InputBegan:Connect(function(input, gameProcessed)
-	if gameProcessed then return end
-	if input.UserInputType == Enum.UserInputType.Touch then
-		jumpTouching = true
-	end
+UserInputService.InputEnded:Connect(function(input, gameProcessed)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        draggingSpeed = false
+        draggingJump = false
+    end
 end)
 
-jumpSlider.InputEnded:Connect(function(input, gameProcessed)
-	if input.UserInputType == Enum.UserInputType.Touch then
-		jumpTouching = false
-	end
-end)
-
--- Atualizar posição ao deslizar (Mobile)
 UserInputService.InputChanged:Connect(function(input, gameProcessed)
-	if gameProcessed then return end
-	
-	if input.UserInputType == Enum.UserInputType.Touch then
-		local touchPosition = input.Position
-		
-		if speedTouching then
-			local relativeX = touchPosition.X - speedSlider.AbsolutePosition.X
-			local percentage = math.clamp(relativeX / speedSlider.AbsoluteSize.X, 0, 1)
-			updateSpeed(1 + (percentage * 5))
-		end
-		
-		if jumpTouching then
-			local relativeX = touchPosition.X - jumpSlider.AbsolutePosition.X
-			local percentage = math.clamp(relativeX / jumpSlider.AbsoluteSize.X, 0, 1)
-			updateJump(50 + (percentage * 150))
-		end
-	end
+    if draggingSpeed then
+        local sliderPos = speedSlider.AbsolutePosition.X
+        local sliderSize = speedSlider.AbsoluteSize.X
+        local mousePos = UserInputService:GetMouseLocation().X
+        local percentage = math.clamp((mousePos - sliderPos) / sliderSize, 0, 1)
+        speedMultiplier = 1 + (percentage * 5)
+        updateSpeedSlider()
+    elseif draggingJump then
+        local sliderPos = jumpSlider.AbsolutePosition.X
+        local sliderSize = jumpSlider.AbsoluteSize.X
+        local mousePos = UserInputService:GetMouseLocation().X
+        local percentage = math.clamp((mousePos - sliderPos) / sliderSize, 0, 1)
+        jumpMultiplier = 1 + (percentage * 4)
+        updateJumpSlider()
+    end
 end)
 
--- Botão minimizar
-minimizeBtn.MouseButton1Click:Connect(toggleMinimize)
+-- Botão Minimizar
+minimizeBtn.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    if isMinimized then
+        mainFrame.Size = UDim2.new(0, 300, 0, 40)
+        minimizeBtn.Text = "+"
+    else
+        mainFrame.Size = UDim2.new(0, 300, 0, 250)
+        minimizeBtn.Text = "−"
+    end
+end)
 
--- Atalho K
+-- Atalho Teclado K
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
-	if gameProcessed then return end
-	if input.KeyCode == Enum.KeyCode.K then
-		toggleMinimize()
-	end
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.K then
+        isMinimized = not isMinimized
+        if isMinimized then
+            mainFrame.Size = UDim2.new(0, 300, 0, 40)
+            minimizeBtn.Text = "+"
+        else
+            mainFrame.Size = UDim2.new(0, 300, 0, 250)
+            minimizeBtn.Text = "−"
+        end
+    end
 end)
 
--- Aplicar velocidade
+-- ⭐ VELOCIDADE E PULO FUNCIONANDO PERFEITAMENTE ⭐
 RunService.RenderStepped:Connect(function()
-	if character and humanoid.Health > 0 then
-		local moveDirection = Vector3.new(0, 0, 0)
-		
-		if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-			moveDirection = moveDirection + (character.HumanoidRootPart.CFrame.LookVector * speedMultiplier)
-		end
-		if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-			moveDirection = moveDirection - (character.HumanoidRootPart.CFrame.RightVector * speedMultiplier)
-		end
-		if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-			moveDirection = moveDirection - (character.HumanoidRootPart.CFrame.LookVector * speedMultiplier)
-		end
-		if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-			moveDirection = moveDirection + (character.HumanoidRootPart.CFrame.RightVector * speedMultiplier)
-		end
-		
-		if moveDirection.Magnitude > 0 then
-			character.HumanoidRootPart.Velocity = Vector3.new(
-				moveDirection.X,
-				character.HumanoidRootPart.Velocity.Y,
-				moveDirection.Z
-			)
-		end
-	end
+    if not character.Parent then return end
+    
+    -- SUPER PULO - Aplicar JumpHeight com multiplicador
+    humanoid.JumpHeight = 7.2 * jumpMultiplier
+    
+    -- SUPER VELOCIDADE - Aplicar velocidade constante
+    local moveDirection = humanoid.MoveDirection
+    
+    if moveDirection.Magnitude > 0 then
+        local constantSpeed = 16 * speedMultiplier
+        bodyVelocity.Velocity = moveDirection * constantSpeed
+    else
+        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    end
 end)
 
--- Aplicar pulo
-humanoid.Jumping:Connect(function()
-	if character then
-		character.HumanoidRootPart.Velocity = Vector3.new(
-			character.HumanoidRootPart.Velocity.X,
-			jumpPower,
-			character.HumanoidRootPart.Velocity.Z
-		)
-	end
-end)
-
--- Atualizar ao respawnar
+-- Recriar ao spawnar
 player.CharacterAdded:Connect(function(newCharacter)
-	character = newCharacter
-	humanoid = character:WaitForChild("Humanoid")
-	rootPart = character:WaitForChild("HumanoidRootPart")
-	statusLabel.Text = "Status: Ativo (Respawned)"
+    character = newCharacter
+    humanoid = character:WaitForChild("Humanoid")
+    rootPart = character:WaitForChild("HumanoidRootPart")
+    createBodyVelocity()
 end)
 
-print("✅ MT SCRIPT - Versão Mobile carregado com sucesso!")
-
+updateSpeedSlider()
+updateJumpSlider()
